@@ -2,11 +2,14 @@
 
 import {
 	Box,
+	Button,
 	Divider,
 	Drawer,
 	FormControlLabel,
 	Radio,
 	RadioGroup,
+	Stack,
+	TextField,
 	Toolbar,
 	Typography,
 } from '@mui/material';
@@ -14,6 +17,7 @@ import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import 'ol/ol.css';
+import { fromLonLat } from 'ol/proj';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import { useEffect, useRef, useState } from 'react';
@@ -51,6 +55,29 @@ const OLMap = () => {
 	const mapRef = useRef<HTMLDivElement>(null);
 	const [selectedLayer, setSelectedLayer] = useState('osm-default');
 	const mapInstance = useRef<Map | null>(null);
+	const [searchQuery, setSearchQuery] = useState('');
+	const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+		searchQuery
+	)}&format=json&limit=1`;
+
+	const handleSearch = async () => {
+		try {
+			const res = await fetch(searchUrl);
+			const data = await res.json();
+			if (data && data.length > 0) {
+				const { lat, lon } = data[0];
+				const coords = [parseFloat(lon), parseFloat(lat)];
+				const view = mapInstance.current?.getView();
+				view?.setCenter(fromLonLat(coords));
+				view?.setZoom(14);
+			} else {
+				alert('Location not found.');
+			}
+		} catch (err) {
+			console.error(err);
+			alert('Error searching location.');
+		}
+	};
 
 	useEffect(() => {
 		if (!mapRef.current) return;
@@ -94,6 +121,26 @@ const OLMap = () => {
 			>
 				<Toolbar />
 				<Box sx={{ overflow: 'auto', p: 2 }}>
+					<Stack spacing={1} direction="row" sx={{ mb: 2 }}>
+						<TextField
+							size="small"
+							fullWidth
+							label="Search location"
+							variant="outlined"
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+						/>
+						<Button
+							variant="contained"
+							onClick={async () => {
+								if (!searchQuery) return;
+								handleSearch();
+							}}
+						>
+							Go
+						</Button>
+					</Stack>
+					<Divider sx={{ mb: 2 }} />
 					<Typography variant="h6" gutterBottom>
 						Base Map Layers
 					</Typography>
