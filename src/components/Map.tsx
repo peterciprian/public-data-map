@@ -27,7 +27,7 @@ const drawerWidth = 240;
 const baseLayersConfig = {
 	'osm-default': new TileLayer({
 		source: new OSM(),
-		visible: true,
+		visible: false,
 	}),
 	'osm-satellite': new TileLayer({
 		source: new XYZ({
@@ -43,12 +43,20 @@ const baseLayersConfig = {
 		}),
 		visible: false,
 	}),
+	'esri-world_Imagery': new TileLayer({
+		source: new XYZ({
+			url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+			attributions: 'Tiles © Esri',
+		}),
+		visible: true,
+	}),
 };
 
 const layerOptions = [
 	{ id: 'osm-default', label: 'OSM Default' },
 	{ id: 'osm-satellite', label: 'Topographic' },
 	{ id: 'osm-humanitarian', label: 'Humanitarian' },
+	{ id: 'esri-world_Imagery', label: 'World Imagery' },
 ];
 
 const OLMap = () => {
