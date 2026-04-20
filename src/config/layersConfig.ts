@@ -7,7 +7,7 @@ import ImageWMS from 'ol/source/ImageWMS';
 export const BaseLayersConfig = {
     'osm-default': new TileLayer({
         source: new OSM(),
-        visible: false,
+        visible: true,
         properties: { name: 'OSM Default' }
     }),
     'osm-satellite': new TileLayer({
@@ -32,12 +32,12 @@ export const BaseLayersConfig = {
             attributions: 'Tiles © Esri'
         }),
         properties: { name: 'World Imagery' },
-        visible: true
+        visible: false
     })
 };
 
 export const OverlayLayersConfig = {
-    turistautak: new ImageLayer({
+    'turistautak': new ImageLayer({
         source: new ImageWMS({
             url: 'https://gis.turistaterkepek.hu/server/services/turistaut_nyilvantartas/nyilvantartas_wms/MapServer/WMSServer',
             params: { LAYERS: '0' },

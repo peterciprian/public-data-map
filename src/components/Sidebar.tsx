@@ -21,12 +21,12 @@ const drawerWidth = 240;
 
 const Sidebar = ({mapInstance}: {mapInstance: RefObject<Map | null>} ) => {
     
-	const [baseLayer, setBaseLayer] = useState('osm-default');
+	const [baseLayer, setBaseLayer] = useState(Object.entries(BaseLayersConfig).find(([_, layer]) => layer.getVisible())?.[0] || 'osm-default');
     const [visibleOverlays, setVisibleOverlays] = useState<
 		Record<string, boolean>
 	>(
-		Object.keys(OverlayLayersConfig).reduce(
-			(acc, key) => ({ ...acc, [key]: false }),
+		Object.entries(OverlayLayersConfig).reduce(
+			(acc, [key, layer]) => ({ ...acc, [key]: layer.getVisible() }),
 			{}
 		)
 	);
