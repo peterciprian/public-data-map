@@ -3,6 +3,7 @@
 import {
 	Box,
 	Button,
+	Checkbox,
 	Divider,
 	Drawer,
 	FormControlLabel,
@@ -16,10 +17,12 @@ import {
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
+import ImageLayer from 'ol/layer/Image';
 import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
+import ImageWMS from 'ol/source/ImageWMS';
 import { useEffect, useRef, useState } from 'react';
 
 const drawerWidth = 240;
@@ -28,6 +31,7 @@ const baseLayersConfig = {
 	'osm-default': new TileLayer({
 		source: new OSM(),
 		visible: false,
+		properties: { name: 'OSM Default' },
 	}),
 	'osm-satellite': new TileLayer({
 		source: new XYZ({
@@ -35,6 +39,7 @@ const baseLayersConfig = {
 			attributions: '© OpenTopoMap (CC-BY-SA)',
 		}),
 		visible: false,
+		properties: { name: 'OSM Satellite' },
 	}),
 	'osm-humanitarian': new TileLayer({
 		source: new XYZ({
@@ -42,28 +47,39 @@ const baseLayersConfig = {
 			attributions: '© OpenStreetMap contributors, Humanitarian style',
 		}),
 		visible: false,
+		properties: { name: 'OSM Humanitarian' },
 	}),
 	'esri-world_Imagery': new TileLayer({
 		source: new XYZ({
 			url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 			attributions: 'Tiles © Esri',
 		}),
+		properties: { name: 'World Imagery' },
 		visible: true,
 	}),
 };
 
-const layerOptions = [
-	{ id: 'osm-default', label: 'OSM Default' },
-	{ id: 'osm-satellite', label: 'Topographic' },
-	{ id: 'osm-humanitarian', label: 'Humanitarian' },
-	{ id: 'esri-world_Imagery', label: 'World Imagery' },
-];
+const overlayLayersConfig = {
+	'turistautak': new ImageLayer({
+		source: new ImageWMS({
+			url: 'https://gis.turistaterkepek.hu/server/services/turistaut_nyilvantartas/nyilvantartas_wms/MapServer/WMSServer',
+			params: { 'LAYERS': '0' },
+			attributions: 'Turistautak.hu',
+		}),
+		visible: false,
+		properties: { name: 'Turistautak' },
+	}),
+};
+
 
 const OLMap = () => {
 	const mapRef = useRef<HTMLDivElement>(null);
 	const [selectedLayer, setSelectedLayer] = useState('osm-default');
 	const mapInstance = useRef<Map | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
+	const [visibleOverlays, setVisibleOverlays] = useState<Record<string, boolean>>(
+		Object.keys(overlayLayersConfig).reduce((acc, key) => ({ ...acc, [key]: false }), {})
+	);
 	const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
 		searchQuery
 	)}&format=json&limit=1`;
@@ -90,7 +106,7 @@ const OLMap = () => {
 	useEffect(() => {
 		if (!mapRef.current) return;
 
-		const layers = Object.values(baseLayersConfig);
+		const layers = Object.values({ ...baseLayersConfig, ...overlayLayersConfig });
 
 		const map = new Map({
 			target: mapRef.current,
@@ -158,15 +174,41 @@ const OLMap = () => {
 						value={selectedLayer}
 						onChange={(e) => setSelectedLayer(e.target.value)}
 					>
-						{layerOptions.map((option) => (
+						{Object.entries(baseLayersConfig).map(([id, layer]) => (
 							<FormControlLabel
-								key={option.id}
-								value={option.id}
+								key={id}
+								value={id}
 								control={<Radio />}
-								label={option.label}
+								label={layer.get('name')}
 							/>
 						))}
 					</RadioGroup>
+
+					<Divider sx={{ mb: 2 }} />
+					<Typography variant="h6" gutterBottom>
+						Overlay Layers
+					</Typography>
+					<Divider sx={{ mb: 2 }} />
+
+					<Stack spacing={1}>
+						{Object.entries(overlayLayersConfig).map(([id, layer]) => (
+							<FormControlLabel
+								key={id}
+								control={
+									<Checkbox
+										checked={visibleOverlays[id] || false}
+										onChange={(e) => {
+											const newState = { ...visibleOverlays, [id]: e.target.checked };
+											setVisibleOverlays(newState);
+											layer.setVisible(e.target.checked);
+										}}
+									/>
+								}
+								label={layer.get('name')}
+							/>
+						))}
+					</Stack>
+					
 				</Box>
 			</Drawer>
 
