@@ -3,7 +3,6 @@ import nextPlugin from '@next/eslint-plugin-next';
 import importPlugin from 'eslint-plugin-import';
 import pluginReact from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
-import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
