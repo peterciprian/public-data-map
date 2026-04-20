@@ -1,5 +1,8 @@
 import MapWrapper from '@components/MapWrapper';
-import { AppBar, Container, Toolbar, Typography } from '@mui/material';
+import AppBar from '@mui/material/AppBar';
+import Container from '@mui/material/Container';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 
 export default function HomePage() {
 	return (
